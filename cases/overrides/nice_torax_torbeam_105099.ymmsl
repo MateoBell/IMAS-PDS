@@ -1,0 +1,8 @@
+ymmsl_version: v0.2
+settings:
+  source.t_min: 3.0
+  torax.t_initial: 3.2175978120551245
+  torax.t_final: 76.55426447872179
+  torax.fixed_dt: 1.0
+  torax.communication_interval: 1.0
+  torax.output_all_timeslices: true

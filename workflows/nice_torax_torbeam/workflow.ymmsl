@@ -1,0 +1,260 @@
+ymmsl_version: v0.2
+
+imports:
+- from imas_muscle3 import implementation source_component
+- from imas_muscle3 import implementation sink_component
+- from imas_muscle3 import implementation accumulator_component
+- from imas_muscle3 import implementation olc_component
+- from lib.easybuild_programs import implementation nice_inv
+- from lib.local_programs import implementation torax_coupled
+- from lib.local_programs import implementation hcd_workflow
+- from lib.local_programs import implementation torbeam
+- from lib.local_programs import implementation hcd2core_sources
+
+models:
+  nice_torax_torbeam:
+    description: Coupled NICE-TORAX-TORBEAM multi-physics workflow
+    components:
+      source:
+        description: Input IDS source loader
+        implementation: source_component
+        ports:
+          o_i:
+          - equilibrium_out
+          - wall_out
+          - pf_active_out
+          - pf_passive_out
+          - iron_core_out
+          - core_profiles_out
+
+      nice_inv:
+        description: NICE inverse free-boundary equilibrium solver
+        implementation: nice_inv
+        ports:
+          f_init:
+          - equilibrium_in
+          - wall_in
+          - pf_active_in
+          - pf_passive_in
+          - iron_core_in
+          o_f:
+          - equilibrium_out
+          - pf_active_out
+
+      accumulator:
+        description: Accumulates initial timeslices for TORAX
+        implementation: accumulator_component
+        ports:
+          s:
+          - equilibrium_in
+          - core_profiles_in
+          o_f:
+          - equilibrium_out
+          - core_profiles_out
+
+      acc2:
+        description: Accumulates machine description slices for sink
+        implementation: accumulator_component
+        ports:
+          s:
+          - wall_in
+          - pf_active_in
+          - pf_passive_in
+          - iron_core_in
+          o_f:
+          - wall_out
+          - pf_active_out
+          - pf_passive_out
+          - iron_core_out
+
+      torax:
+        description: TORAX 1D core transport simulator
+        implementation: torax_coupled
+        ports:
+          f_init:
+          - equilibrium_in_f
+          - core_profiles_in_f
+          s:
+          - core_sources_in_s
+          o_i:
+          - equilibrium_out_i
+          - core_profiles_out_i
+          o_f:
+          - equilibrium_out_f
+          - core_profiles_out_f
+
+      hcd_workflow:
+        description: Heating and current drive coordinator for TORBEAM
+        implementation: hcd_workflow
+        ports:
+          f_init:
+          - equilibrium_f_init
+          - core_profiles_f_init
+          o_i:
+          - equilibrium_out_i
+          - core_profiles_out_i
+          - ec_launchers_out_i
+          - equilibrium_out_i_4
+          - distributions_out_i
+          - distribution_sources_out_i
+          - waves_out_i
+          s:
+          - waves_in_s
+          - core_sources_in_s
+          o_f:
+          - core_sources_out_f
+          - ec_launchers_out_f
+
+      torbeam:
+        description: TORBEAM paraxial beam tracing code for ECRH/ECCD
+        implementation: torbeam
+        ports:
+          f_init:
+          - equilibrium_in
+          - core_profiles_in
+          - ec_launchers_in
+          o_f:
+          - waves_out
+
+      hcd2core_sources:
+        description: Physics converter from wave absorption to core_sources
+        implementation: hcd2core_sources
+        ports:
+          f_init:
+          - distributions_in
+          - distribution_sources_in
+          - waves_in
+          - core_profiles_in
+          o_f:
+          - core_sources_out
+
+      validator:
+        description: Operational limit checking for coil currents
+        implementation: olc_component
+        ports:
+          f_init:
+          - pf_active_in
+
+      sink_nice:
+        description: Sinks NICE output IDSs
+        implementation: sink_component
+        ports:
+          f_init:
+          - equilibrium_in
+          - wall_in
+          - pf_active_in
+          - pf_passive_in
+          - iron_core_in
+          - core_profiles_in
+
+      sink_torax:
+        description: Sinks TORAX output IDSs
+        implementation: sink_component
+        ports:
+          f_init:
+          - equilibrium_in
+          - wall_in
+          - pf_active_in
+          - pf_passive_in
+          - iron_core_in
+          - core_profiles_in
+
+      sink_oi_hcd:
+        description: Sinks intermediate HCD output IDSs
+        implementation: sink_component
+        ports:
+          f_init:
+          - equilibrium_in
+          - core_profiles_in
+          - ec_launchers_in
+          - waves_in
+          - distributions_in
+          - distribution_sources_in
+
+      sink_hcd:
+        description: Sinks final HCD output IDSs
+        implementation: sink_component
+        ports:
+          f_init:
+          - equilibrium_in
+          - core_profiles_in
+          - ec_launchers_in
+          - waves_in
+          - distributions_in
+          - distribution_sources_in
+          - core_sources_in
+
+    conduits:
+      source.core_profiles_out:
+      - sink_nice.core_profiles_in
+      - accumulator.core_profiles_in
+      source.equilibrium_out: nice_inv.equilibrium_in
+      source.pf_active_out: nice_inv.pf_active_in
+      source.wall_out:
+      - nice_inv.wall_in
+      - sink_nice.wall_in
+      - acc2.wall_in
+      source.pf_passive_out:
+      - nice_inv.pf_passive_in
+      - sink_nice.pf_passive_in
+      - acc2.pf_passive_in
+      source.iron_core_out:
+      - nice_inv.iron_core_in
+      - sink_nice.iron_core_in
+      - acc2.iron_core_in
+
+      nice_inv.equilibrium_out:
+      - sink_nice.equilibrium_in
+      - accumulator.equilibrium_in
+      nice_inv.pf_active_out:
+      - sink_nice.pf_active_in
+      - acc2.pf_active_in
+      - validator.pf_active_in
+
+      accumulator.equilibrium_out: torax.equilibrium_in_f
+      accumulator.core_profiles_out: torax.core_profiles_in_f
+
+      torax.equilibrium_out_f: sink_torax.equilibrium_in
+      torax.core_profiles_out_f: sink_torax.core_profiles_in
+      acc2.pf_active_out: sink_torax.pf_active_in
+      acc2.pf_passive_out: sink_torax.pf_passive_in
+      acc2.iron_core_out: sink_torax.iron_core_in
+      acc2.wall_out: sink_torax.wall_in
+
+      torax.equilibrium_out_i:
+      - hcd_workflow.equilibrium_f_init
+      - sink_hcd.equilibrium_in
+      torax.core_profiles_out_i:
+      - hcd_workflow.core_profiles_f_init
+      - sink_hcd.core_profiles_in
+
+      hcd_workflow.equilibrium_out_i_4:
+      - torbeam.equilibrium_in
+      - sink_oi_hcd.equilibrium_in
+      hcd_workflow.core_profiles_out_i:
+      - torbeam.core_profiles_in
+      - hcd2core_sources.core_profiles_in
+      - sink_oi_hcd.core_profiles_in
+      hcd_workflow.ec_launchers_out_i:
+      - torbeam.ec_launchers_in
+      - sink_oi_hcd.ec_launchers_in
+      hcd_workflow.distributions_out_i:
+      - hcd2core_sources.distributions_in
+      - sink_oi_hcd.distributions_in
+      hcd_workflow.distribution_sources_out_i:
+      - hcd2core_sources.distribution_sources_in
+      - sink_oi_hcd.distribution_sources_in
+      hcd_workflow.waves_out_i:
+      - hcd2core_sources.waves_in
+      - sink_oi_hcd.waves_in
+
+      torbeam.waves_out:
+      - hcd_workflow.waves_in_s
+      - sink_hcd.waves_in
+
+      hcd2core_sources.core_sources_out:
+      - hcd_workflow.core_sources_in_s
+      - sink_hcd.core_sources_in
+
+      hcd_workflow.core_sources_out_f: torax.core_sources_in_s
+      hcd_workflow.ec_launchers_out_f: sink_hcd.ec_launchers_in

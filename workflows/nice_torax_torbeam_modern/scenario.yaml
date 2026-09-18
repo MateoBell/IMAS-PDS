@@ -1,0 +1,161 @@
+# ---------------------------------
+# PARAMETERS OF THE INPUT SCENARIO
+# ---------------------------------
+
+# ITER DT baseline (old baseline)
+#shot:                105099
+shot:                -1
+run_in:              2
+input_user_or_path:  schneim
+input_database:      MAKSIM
+time_slice:          36. #29. #15
+scenario_backend:    HDF5
+input_ddv:           3
+
+# ----------------------------------------------------------------------------------------------------
+# If shot = -1 --> Use URI link instead (can be simDB but not necessarily)
+# cache_mode=none is efficient with lazy loading, but slower without (then case_mode=ids is better)!
+# URIs starting with uda.iter.org make sense only for actually shared folders like /work/imas/shared,
+# but it does not make sense with data in local user database
+# ----------------------------------------------------------------------------------------------------
+#scenario_uri_link: "imas://uda.iter.org/uda?path=/work/imas/shared/imasdb/ITER/3/134173/106&backend=hdf5&cache_mode=none"
+scenario_uri_link: "imas:hdf5?path=/home/ITER/schneim/public/imasdb/MAKSIM/3/105099/2"
+#scenario_uri_link: "imas:hdf5?path=/home/ITER/schneim/public/git/pds/training_data/training_ids" 
+#scenario_uri_link: "imas:hdf5?path=/home/ITER/schneim/public/imasdb/ITER/4/134173/106"
+#scenario_uri_link: "imas:hdf5?path=/home/ITER/schneim/public/imasdb/ITER/4/666666/10"
+
+# -------------------------
+# MACHINE DESCRIPTION DATA
+# -------------------------
+wall_uri_link: "imas:hdf5?path=/home/ITER/schneim/public/imasdb/ITER/4/666666/3"
+pf_active_uri_link: "imas:hdf5?path=/home/ITER/schneim/public/imasdb/ITER/4/666666/3"
+pf_passive_uri_link: "imas:hdf5?path=/home/ITER/schneim/public/imasdb/ITER/4/666666/3"
+iron_core_uri_link: "imas:hdf5?path=/home/ITER/schneim/public/imasdb/ITER/4/666666/3"
+
+# -----------------------------------
+# PARAMETERS TO SAVE THE OUTPUT DATA
+# -----------------------------------
+output_user_or_path: default
+output_database:     TORBEAM
+run_out:             1
+output_backend:      HDF5
+
+# -----------------------------------
+# PARAMETERS FOR OPTIONAL TIME LOOP
+# -----------------------------------
+
+# Time slice to simulate
+# - if <0: use IDS first time slice (with ntimes specified by the user)
+# - if =0: use IDS whole time vector (ntimes not used)
+# - if >0: use the specified time slice (with ntimes specified by the user)
+
+# Number of time steps to simulate (every dstep steps)
+# (effective only when time_slice is not equal to zero)
+# Time slice taken every dstep steps
+ntimes: 1
+dstep: 100
+
+# Time step in case a generic time array is defined
+dt_required: 10.0
+
+# ------------------------------------------
+# OPTION TO RUN EACH TIME SLICE IN PARALLEL
+# ------------------------------------------
+parallel: 0
+
+# --------------
+# MISCELLANEOUS
+# --------------
+
+# Tokamak name (useful for automatic adjustment of visualisation scripts)
+tokamak: 'ITER'
+
+# Cooking specific to iter ec system for adjustement of dynamic quantities w.r.t. geometry tables
+extra_cooking: 1
+
+# Optionally overwrite polarization (-99 = input, 1. = forced to O-mode, 0. = forced to X-mode)
+force_pola: -99
+
+# With our without reflections
+ireflec: 0
+
+# At what fraction of original power do reflections ignore the beam?
+threshhold_frac: 0.1
+
+# Profile radial extension (default = not extended = 1.0)
+radial_extension: 1.0
+
+# Parameter to activate the scan on poloidal angle
+scanflag_steer: 0
+steering_array: [-1., -0.5, 0., 0.5, 1.]
+#steering_array: ['linspace',[-1.,1.,11]]
+
+# Parameter to activate the scan on toroidal angle
+# Careful: if scanflag_beta = 1, even if beta_shift is chosen = 0,
+# the TSM beta will be forced co-current, and tsm_shift will be applied
+scanflag_beta: 0
+beta_shift_array: [-10.,-9.,-8.,-7.,-6.,-5.,-4.,-3.,-2.,-1.,0.,1.,2.,3.]
+tsm_shift: 7.
+
+# Parameter to activate the scan on B-field (needs Chease to be activated)
+scanflag_bfield: 0
+bfield_array: [-2.8, -3.3, -4., -4.5]
+
+# Optionally run TORBEAM
+run_torbeam: 1
+
+# Optionally run GRAY
+run_gray: 0
+
+# Optionally re-run the equilibrium with CHEASE
+run_chease: 0
+
+# Optionally run CYRANO
+run_cyrano: 0
+
+# Optionally run pseudo-controller
+run_c2ec_controller: 0
+
+# Optionally re-run the equilibrium with NICE Inverse
+run_nice_inv: 0
+
+# Optionally re-run the equilibrium with NICE Direct
+run_nice_dir: 0
+
+# Optionally re-run the equilibrium with NICE Direct
+run_nice_evo: 0
+nice_evo_iterate: 5
+
+# Optionally re-run the equilibrium with NICE Direct (with internal Nice Inverse calculation)
+run_nice_evo_initinv: 0
+nice_evo_initinv_iterate: 5
+
+# Optionally run hcd2core-sources
+run_hcd2core_sources: 1
+
+# Parameter to plot the configured EC power waveforms or not
+kplot_waveform: 0
+kplot_extension: 0
+kplot_cdeff: 0
+
+# Debug or not
+debug_torbeam: 0
+debug_cyrano: 0
+debug_gray: 0
+debug_hcd2core_sources: 0
+
+# Sandbox manual settings
+sandbox_manual: 1
+
+# 1 beam only for tests
+one_beam: 0
+
+# run inside transport_suite_emulator or not
+run_transport_suite_emulator: 1
+
+# Optionally select a specific mirror (1) or not (0)
+select_mirror: 0
+chosen_mirror: ['EL15/TSM','EL15/MSM','EL15/BSM']
+#chosen_mirror: ['EL/TSM']
+chosen_power: 1.e6
+full_mirror_list: ['EL14/TSM','EL14/MSM','EL14/BSM','EL15/TSM','EL15/MSM','EL15/BSM','UL12/USM','UL12/LSM','UL13/USM','UL13/LSM','UL15/USM','UL15/LSM','UL16/USM','UL16/LSM']

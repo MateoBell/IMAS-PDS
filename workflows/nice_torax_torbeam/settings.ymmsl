@@ -1,0 +1,60 @@
+ymmsl_version: v0.2
+
+# Generic settings for nice_torax_torbeam, stacked after workflow.ymmsl by
+# bin/pds-create-case / bin/pds-run. ${SHOT} is filled in by pds-create-case.
+# Shot-specific overrides are placed in cases/overrides/nice_torax_torbeam_<shot>.ymmsl.
+
+resources:
+  nice_torax_torbeam.source: {threads: 1}
+  nice_torax_torbeam.nice_inv: {threads: 8}
+  nice_torax_torbeam.accumulator: {threads: 1}
+  nice_torax_torbeam.acc2: {threads: 1}
+  nice_torax_torbeam.torax: {threads: 1}
+  nice_torax_torbeam.hcd_workflow: {threads: 1}
+  nice_torax_torbeam.torbeam: {threads: 1}
+  nice_torax_torbeam.hcd2core_sources: {threads: 1}
+  nice_torax_torbeam.validator: {threads: 1}
+  nice_torax_torbeam.sink_nice: {threads: 1}
+  nice_torax_torbeam.sink_torax: {threads: 1}
+  nice_torax_torbeam.sink_oi_hcd: {threads: 1}
+  nice_torax_torbeam.sink_hcd: {threads: 1}
+
+settings:
+  # Scenario source and timings
+  source.source_uri: "imas:hdf5?path=${CASE_DIR}/input_data"
+  source.t_min: 3.0
+  source.iterative: true
+
+  # Sinks (relative paths place output inside the case run directory)
+  sink_nice.sink_uri: "imas:hdf5?path=../../../out_nice"
+  sink_nice.sink_mode: "w"
+
+  sink_torax.sink_uri: "imas:hdf5?path=../../../out_torax"
+  sink_torax.sink_mode: "w"
+
+  sink_hcd.sink_uri: "imas:hdf5?path=../../../out_hcd"
+  sink_hcd.sink_mode: "w"
+
+  sink_oi_hcd.sink_uri: "imas:hdf5?path=../../../out_oi_hcd"
+  sink_oi_hcd.sink_mode: "w"
+
+  # Physics actor configurations
+  torax.output_all_timeslices: true
+  torax.communication_interval: 1.0
+  torax.equilibrium_interval: 1.0
+  torax.python_config_module: ${PDS_REPO}/workflows/nice_torax_torbeam/config_torax.py
+
+  nice_inv.xml_path: ${PDS_REPO}/workflows/nice_torax_torbeam/config_nice.xml
+
+  torbeam.code_parameters: ${PDS_REPO}/workflows/nice_torax_torbeam/input_torbeam.xml
+  hcd2core_sources.code_parameters: ${PDS_REPO}/workflows/nice_torax_torbeam/input_hcd2core_sources.xml
+
+  hcd_workflow.config: ${PDS_REPO}/workflows/nice_torax_torbeam/scenario.yaml
+  hcd_workflow.waveforms: ${PDS_REPO}/workflows/nice_torax_torbeam/ec_waveforms.yaml
+
+  validator.halt_on_error: true
+  validator.extra_rule_dirs: ${PDS_REPO}/pds_validation_tests/
+  validator.rulesets: iter-olc
+  validator.apply_generic: false
+
+  muscle_remote_log_level: 'INFO'

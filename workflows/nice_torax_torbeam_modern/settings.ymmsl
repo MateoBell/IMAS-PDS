@@ -1,0 +1,58 @@
+ymmsl_version: v0.2
+
+resources:
+  nice_torax_torbeam_modern.equilibrium.nice: {threads: 2}
+  nice_torax_torbeam_modern.torax: {threads: 4}
+  nice_torax_torbeam_modern.torbeam: {threads: 1}
+  nice_torax_torbeam_modern.hcd2core_sources: {threads: 1}
+  nice_torax_torbeam_modern.hcd_workflow: {threads: 1}
+  nice_torax_torbeam_modern.equilibrium.recorder_equilibrium: {threads: 1}
+  nice_torax_torbeam_modern.validator: {threads: 1}
+  nice_torax_torbeam_modern.sink_nice: {threads: 1}
+  nice_torax_torbeam_modern.sink_torax: {threads: 1}
+  nice_torax_torbeam_modern.sink_oi_hcd: {threads: 1}
+  nice_torax_torbeam_modern.sink_hcd: {threads: 1}
+
+settings:
+  # Pulse design and machine description via Waveform-Editor
+  waveform_editor.waveforms: ${PDS_REPO}/workflows/nice_torax_torbeam_modern/waveforms.yaml
+  source.source_uri: "imas:hdf5?path=${SCENARIOS_REPO}/${SHOT}/data/in"
+  source.iterative: False
+  source.t_min: 3.0
+
+  # Solvers
+  equilibrium.nice.xml_path: ${PDS_REPO}/workflows/nice_torax_torbeam_modern/config_nice.xml
+  equilibrium.recorder_equilibrium.config: ${PDS_REPO}/visualization/nice_inv.py
+  equilibrium.recorder_equilibrium.md: "wall=imas:hdf5?path=${SCENARIOS_REPO}/${SHOT}/data/in_md pf_active=imas:hdf5?path=${SCENARIOS_REPO}/${SHOT}/data/in_md"
+
+  torax.python_config_module: ${PDS_REPO}/workflows/nice_torax_torbeam_modern/config_torax.py
+  torax.t_initial: 3.2175978120551245
+  torax.t_final: 76.55426447872179
+  torax.communication_interval: 1.0
+  torax.output_all_timeslices: true
+
+  torbeam.code_parameters: ${PDS_REPO}/workflows/nice_torax_torbeam_modern/input_torbeam.xml
+  hcd2core_sources.code_parameters: ${PDS_REPO}/workflows/nice_torax_torbeam_modern/input_hcd2core_sources.xml
+  hcd_workflow.config: ${PDS_REPO}/workflows/nice_torax_torbeam_modern/scenario.yaml
+  hcd_workflow.waveforms: ${PDS_REPO}/workflows/nice_torax_torbeam_modern/ec_waveforms.yaml
+
+  # Sinks
+  sink_nice.sink_uri: "imas:hdf5?path=../../../out_nice"
+  sink_nice.sink_mode: "w"
+
+  sink_torax.sink_uri: "imas:hdf5?path=../../../out_torax"
+  sink_torax.sink_mode: "w"
+
+  sink_hcd.sink_uri: "imas:hdf5?path=../../../out_hcd"
+  sink_hcd.sink_mode: "w"
+
+  sink_oi_hcd.sink_uri: "imas:hdf5?path=../../../out_oi_hcd"
+  sink_oi_hcd.sink_mode: "w"
+
+  # Validation
+  validator.halt_on_error: True
+  validator.extra_rule_dirs: ${PDS_REPO}/pds_validation_tests
+  validator.rulesets: iter-olc
+  validator.apply_generic: False
+
+  muscle_remote_log_level: 'INFO'
